@@ -1,1 +1,1 @@
-https://editor-next.swagger.io/
+Paste api.yaml into https://editor-next.swagger.io/ to view
