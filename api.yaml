@@ -1,120 +1,91 @@
 openapi: 3.0.0
 info:
   title: ADA Markets API
-  description: This is an API that allows users to perform DEX aggregation on the Cardano blockchain.
-  version: "1.0.0"
-  termsOfService: 'http://adamarkets.example.com/terms/'
-  contact:
-    email: api-support@adamarkets.example.com
+  description: API for ADA Markets
+  version: 1.0.0
+
 servers:
-  - url: 'https://api.adamarkets.example.com/v1'
-    description: Main Production Server
+  - url: https://api.ada-markets.com
+
 paths:
-  /markets:
-    get:
-      summary: Retrieve all supported token pairs
-      operationId: getMarkets
-      tags:
-        - Markets
-      responses:
-        '200':
-          description: An array of supported token pairs
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Market'
-  /aggregateSwap:
+  /aggregate:
     post:
-      summary: Get recommended swap details for aggregating across DEXs
-      operationId: aggregateSwap
-      tags:
-        - Swap
+      summary: Get Aggregate Data
+      description: Returns aggregate market data based on the specified parameters.
+      operationId: getAggregateData
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AggregateSwapRequest'
+              type: object
+              properties:
+                sellCoin:
+                  type: object
+                  properties:
+                    policyId:
+                      type: string
+                    nameHex:
+                      type: string
+                sellAmount:
+                  type: number
+                buyCoin:
+                  type: object
+                  properties:
+                    policyId:
+                      type: string
+                    nameHex:
+                      type: string
+                slippage:
+                  type: number
       responses:
         '200':
-          description: Recommended swap details including DEX splits and CBOR transaction string
+          description: Successful response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AggregateSwapResponse'
-  /submitSwap:
-    post:
-      summary: Submit a CBOR-encoded transaction for execution
-      operationId: submitSwap
-      tags:
-        - Transactions
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SubmitSwapRequest'
-      responses:
-        '200':
-          description: Transaction submission status
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubmitSwapResponse'
+                type: object
+                properties:
+                  aggregateDetails:
+                    type: object
+                    properties:
+                      estimatedReceive:
+                        type: number
+                      dexInfo:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            dexName:
+                              type: string
+                            price:
+                              type: number
+                            receiveAmount:
+                              type: number
+                            minimumReceive:
+                              type: string
+                              format: bigint
+                            estimatedReceive:
+                              type: string
+                            priceImpactPercent:
+                              type: number
+                            swapFees:
+                              type: array
+                              items:
+                                $ref: '#/components/schemas/SwapFee'
+                            splitPercent:
+                              type: number
+                            sellAmount:
+                              type: number
+                  txCbor:
+                    type: object
+
 components:
   schemas:
-    Market:
+    SwapFee:
       type: object
       properties:
-        baseToken:
-          type: string
-          example: 'ADA'
-        quoteToken:
-          type: string
-          example: 'USD'
-    AggregateSwapRequest:
-      type: object
-      properties:
-        baseToken:
-          type: string
-        quoteToken:
+        feeType:
           type: string
         amount:
           type: number
-          format: float
-    AggregateSwapResponse:
-      type: object
-      properties:
-        dexs:
-          type: array
-          items:
-            type: object
-            properties:
-              dexName:
-                type: string
-              percentage:
-                type: number
-                format: float
-        cborTx:
-          type: string
-    SubmitSwapRequest:
-      type: object
-      properties:
-        cborTx:
-          type: string
-    SubmitSwapResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        message:
-          type: string
-  securitySchemes:
-    ApiKeyAuth:
-      type: apiKey
-      in: header
-      name: X-API-KEY
-security:
-  - ApiKeyAuth: []
