@@ -2,13 +2,13 @@ openapi: 3.0.0
 info:
   title: ADA Markets API
   description: API for ADA Markets
-  version: 1.0.0
+  version: 0.0.0
 
 servers:
   - url: https://api.ada-markets.com
 
 paths:
-  /aggregate:
+  /api/v0/swap/aggregate:
     post:
       summary: Get Aggregate Data
       description: Returns aggregate market data based on the specified parameters.
@@ -38,6 +38,12 @@ paths:
                       type: string
                 slippage:
                   type: number
+                walletAddress:
+                  type: string
+                stakingKeyHash:
+                  type: string
+                publicKeyHash:
+                  type: string
       responses:
         '200':
           description: Successful response
@@ -60,11 +66,8 @@ paths:
                               type: string
                             price:
                               type: number
-                            receiveAmount:
-                              type: number
                             minimumReceive:
-                              type: string
-                              format: bigint
+                              type: number
                             estimatedReceive:
                               type: string
                             priceImpactPercent:
@@ -85,7 +88,14 @@ components:
     SwapFee:
       type: object
       properties:
-        feeType:
+        id:
           type: string
-        amount:
-          type: number
+        title:
+          type: string
+        description:
+          type: string
+        value:
+          type: string
+          format: bigint
+        isReturned:
+          type: boolean
