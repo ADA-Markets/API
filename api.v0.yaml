@@ -1,101 +1,244 @@
 openapi: 3.0.0
 info:
-  title: ADA Markets API
-  description: API for ADA Markets
-  version: 0.0.0
-
-servers:
-  - url: https://api.ada-markets.com
-
+  title: Ada Markets APIs
+  version: 1.0.0
 paths:
-  /api/v0/swap/aggregate:
+  /api/v0/aggregate:
     post:
-      summary: Get Aggregate Data
-      description: Returns aggregate market data based on the specified parameters.
-      operationId: getAggregateData
+      summary: Aggregate request for selling and buying coins
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                sellCoin:
-                  type: object
-                  properties:
-                    policyId:
-                      type: string
-                    nameHex:
-                      type: string
-                sellAmount:
-                  type: number
-                buyCoin:
-                  type: object
-                  properties:
-                    policyId:
-                      type: string
-                    nameHex:
-                      type: string
-                slippage:
-                  type: number
-                walletAddress:
-                  type: string
-                stakingKeyHash:
-                  type: string
-                publicKeyHash:
-                  type: string
+              $ref: '#/components/schemas/AggregateRequest'
       responses:
         '200':
-          description: Successful response
+          description: Successfully processed the aggregate request
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  aggregateDetails:
-                    type: object
-                    properties:
-                      estimatedReceive:
-                        type: number
-                      dexInfo:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            dexName:
-                              type: string
-                            price:
-                              type: number
-                            minimumReceive:
-                              type: number
-                            estimatedReceive:
-                              type: string
-                            priceImpactPercent:
-                              type: number
-                            swapFees:
-                              type: array
-                              items:
-                                $ref: '#/components/schemas/SwapFee'
-                            splitPercent:
-                              type: number
-                            sellAmount:
-                              type: number
-                  txCbor:
-                    type: object
+                  status:
+                    type: string
+                  message:
+                    type: string
+        '400':
+          description: Invalid request
+
+  /api/v0/chart/history:
+    post:
+      summary: Get historical chart data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChartDataRequest'
+      responses:
+        '200':
+          description: Successfully retrieved historical chart data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChartDataResponse'
+        '400':
+          description: Invalid request
+
+  /api/v0/coins/all:
+    get:
+      summary: Get all coins data
+      responses:
+        '200':
+          description: Successfully retrieved coins data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CoinsResponse'
+        '400':
+          description: Invalid request
 
 components:
   schemas:
-    SwapFee:
+    AggregateRequest:
       type: object
       properties:
-        id:
+        sellCoin:
+          $ref: '#/components/schemas/Asset'
+        sellAmount:
+          type: number
+          description: Amount of the coin to sell
+        buyCoin:
+          $ref: '#/components/schemas/Asset'
+        slippage:
+          type: number
+          description: Acceptable slippage for the transaction
+        walletAddress:
           type: string
+          description: Wallet address of the user
+        stakingKeyHash:
+          type: string
+          description: Staking key hash of the user
+        publicKeyHash:
+          type: string
+          description: Public key hash of the user
+        additionalFees:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdditionalFee'
+      required:
+        - sellCoin
+        - sellAmount
+        - buyCoin
+        - slippage
+        - walletAddress
+        - stakingKeyHash
+        - publicKeyHash
+        - additionalFees
+
+    ChartDataRequest:
+      type: object
+      properties:
+        coinA:
+          $ref: '#/components/schemas/Asset'
+        coinB:
+          $ref: '#/components/schemas/Asset'
+        symbol:
+          type: string
+          description: Symbol representing the coin pair
+        resolution:
+          type: string
+          description: Resolution of the chart data
+        from:
+          type: integer
+          format: int64
+          description: Start timestamp for the historical data
+        to:
+          type: integer
+          format: int64
+          description: End timestamp for the historical data
+        countback:
+          type: integer
+          description: Number of data points to count back from the 'to' timestamp
+      required:
+        - coinA
+        - coinB
+        - symbol
+        - resolution
+        - from
+        - to
+
+    Asset:
+      type: object
+      properties:
+        policyId:
+          type: string
+          description: Policy ID of the asset
+        nameHex:
+          type: string
+          description: Name of the asset in hexadecimal
+        decimals:
+          type: integer
+          description: Number of decimal places for the asset
+      required:
+        - policyId
+        - nameHex
+        - decimals
+
+    AdditionalFee:
+      type: object
+      properties:
         title:
           type: string
+          description: Title of the additional fee
         description:
           type: string
+          description: Description of the additional fee
         value:
           type: string
           format: bigint
-        isReturned:
+          description: Value of the additional fee
+      required:
+        - title
+        - description
+        - value
+
+    ChartDataResponse:
+      type: object
+      properties:
+        time:
+          type: string
+          description: Time of the data point
+        open:
+          type: number
+          description: Opening price
+        high:
+          type: number
+          description: Highest price
+        low:
+          type: number
+          description: Lowest price
+        close:
+          type: number
+          description: Closing price
+      required:
+        - time
+        - open
+        - high
+        - low
+        - close
+
+    CoinsResponse:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Title of the coin
+        project:
+          type: string
+          description: Project associated with the coin
+        img:
+          type: string
+          description: Image URL of the coin
+        policyId:
+          type: string
+          description: Policy ID of the coin
+        nameHex:
+          type: string
+          description: Name of the coin in hexadecimal
+        decimals:
+          type: number
+          description: Number of decimal places for the coin
+        quantity:
+          type: number
+          description: Quantity of the coin
+        category:
+          type: string
+          description: Category of the coin
+        website:
+          type: string
+          description: Website of the project
+        twitter:
+          type: string
+          description: Twitter handle of the project
+        tradableCoins:
+          type: array
+          items:
+            $ref: '#/components/schemas/Asset'
+        verified:
           type: boolean
+          description: Whether the coin is verified
+      required:
+        - title
+        - project
+        - img
+        - policyId
+        - nameHex
+        - decimals
+        - quantity
+        - tradableCoins
