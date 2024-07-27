@@ -1,6 +1,9 @@
-Welcome to our example API invoke client. The aim of this client is to help you integrate the AdaMarkets APIs.
+#Welcome to Ada Markets API Library
 
-For API Key and URL contact the team
+Welcome to our example API invoke client. 
+The aim of this client is to help you integrate the AdaMarkets APIs.
+
+For API Key and URL contact the team. 
 
 
 # Getting Started

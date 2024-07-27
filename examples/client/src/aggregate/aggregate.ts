@@ -17,7 +17,7 @@ const adaToWmtExample = {
   "walletAddress": "addr1q87ne4esacfkywn8rw762efjvpq4ufhg2eau8etu0q2skxtpvz0ldgwfymg43uuh7pqz7ghvjhe9hkz7gnjpe8ztcmvqsy8dz7",
   "additionalFees": [
     {
-      "title": "Begin",
+      "title": "Test",
       "description": "Wallet fee",
       "value": "2000000"
     }
