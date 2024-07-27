@@ -18,14 +18,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  message:
-                    type: string
+                $ref: '#/components/schemas/AggregateResponse'
         '400':
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateErrorResponse'
 
   /api/v0/chart/history:
     post:
@@ -81,12 +80,6 @@ components:
         walletAddress:
           type: string
           description: Wallet address of the user
-        stakingKeyHash:
-          type: string
-          description: Staking key hash of the user
-        publicKeyHash:
-          type: string
-          description: Public key hash of the user
         additionalFees:
           type: array
           items:
@@ -97,9 +90,91 @@ components:
         - buyCoin
         - slippage
         - walletAddress
-        - stakingKeyHash
-        - publicKeyHash
         - additionalFees
+
+    AggregateResponse:
+      type: object
+      properties:
+        aggregateDetails:
+          type: object
+          properties:
+            estimatedReceive:
+              type: number
+              description: Estimated amount to receive
+            dexInfo:
+              type: array
+              items:
+                $ref: '#/components/schemas/DexInfo'
+        txCbor:
+          type: string
+          description: Transaction CBOR
+
+    AggregateErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: number
+              description: Error code
+            message:
+              type: string
+              description: Error message
+            details:
+              type: string
+              description: Detailed description of the error
+      required:
+        - error
+
+    DexInfo:
+      type: object
+      properties:
+        dexName:
+          type: string
+          description: Name of the decentralized exchange
+        price:
+          type: number
+          description: Price of the asset
+        minimumReceive:
+          type: number
+          description: Minimum amount to receive
+        estimatedReceive:
+          type: number
+          description: Estimated amount to receive
+        priceImpactPercent:
+          type: number
+          description: Price impact percentage
+        swapFees:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwapFee'
+        splitPercent:
+          type: number
+          description: Split percentage
+        sellAmount:
+          type: number
+          description: Amount of the asset to sell
+
+    SwapFee:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of the swap fee
+        title:
+          type: string
+          description: Title of the swap fee
+        description:
+          type: string
+          description: Description of the swap fee
+        value:
+          type: string
+          format: bigint
+          description: Value of the swap fee
+        isReturned:
+          type: boolean
+          description: Whether the fee is returned
 
     ChartDataRequest:
       type: object
@@ -163,10 +238,14 @@ components:
           type: string
           format: bigint
           description: Value of the additional fee
+        isReturned:
+          type: boolean
+          description: Whether the fee is returned
       required:
         - title
         - description
         - value
+        - isReturned
 
     ChartDataResponse:
       type: object
