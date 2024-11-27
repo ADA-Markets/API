@@ -2,3 +2,4 @@
 /examples/client/node_modules
 
 ./src/constants_local.ts
+examples/client/src/constants_local.ts

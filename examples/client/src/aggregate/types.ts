@@ -4,15 +4,14 @@ export interface AggregateRequest {
     buyCoin: Asset;
     slippage: number;
     walletAddress: string;
-    stakingKeyHash: string;
-    publicKeyHash: string;
     additionalFees: AdditionalFee[];
-    txCbor: string;
+    buildTx: boolean;
 }
 
 export type AdditionalFee = {
     title: string;
     description: string;
+    walletAddress: string;
     value: bigint;
 };
 
