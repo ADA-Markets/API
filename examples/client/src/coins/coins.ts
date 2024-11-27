@@ -4,7 +4,7 @@ import { CoinsResponse } from './types';
 
 
 // Function to invoke the API and log the response
-async function invokeApi() {
+export async function invokeApi() {
   try {
 
     const apiUrl = '/api/v0/coins/all'
@@ -32,6 +32,3 @@ async function invokeApi() {
     }
   }
 }
-
-// Call the function
-invokeApi();
