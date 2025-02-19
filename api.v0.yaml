@@ -6,6 +6,8 @@ paths:
   /api/v0/aggregate:
     post:
       summary: Aggregate request for selling and buying coins
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -25,10 +27,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AggregateErrorResponse'
+        '429':
+          description: Too many requests
 
   /api/v0/chart/history:
     post:
       summary: Get historical chart data
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -46,10 +52,14 @@ paths:
                   $ref: '#/components/schemas/ChartDataResponse'
         '400':
           description: Invalid request
+        '429':
+          description: Too many requests
 
   /api/v0/coins/all:
     get:
       summary: Get all coins data
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Successfully retrieved coins data
@@ -61,8 +71,98 @@ paths:
                   $ref: '#/components/schemas/CoinsResponse'
         '400':
           description: Invalid request
+        '429':
+          description: Too many requests
+
+  /api/v0/latestprice:
+    post:
+      summary: Get latest price for a token pair
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LatestPriceRequest'
+      responses:
+        '200':
+          description: Successfully retrieved latest price
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LatestPriceResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LatestPriceErrorResponse'
+        '429':
+          description: Too many requests
+
+  /api/v0/latestprice/batch:
+    post:
+      summary: Get latest prices for multiple token pairs
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchLatestPriceRequest'
+      responses:
+        '200':
+          description: Successfully retrieved batch prices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchLatestPriceResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LatestPriceErrorResponse'
+        '429':
+          description: Too many requests
+
+  /api/swaps/myswaps:
+    get:
+      summary: Get user's swaps
+      parameters:
+        - in: query
+          name: senderpubkeyhash
+          required: true
+          schema:
+            type: string
+          description: Sender's public key hash
+        - in: query
+          name: address
+          required: true
+          schema:
+            type: string
+          description: Wallet address
+      responses:
+        '200':
+          description: Successfully retrieved user's swaps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SwapResponse'
+        '400':
+          description: Invalid request
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     AggregateRequest:
       type: object
@@ -231,7 +331,6 @@ components:
       required:
         - policyId
         - nameHex
-        - decimals
 
     AdditionalFee:
       type: object
@@ -257,7 +356,6 @@ components:
         - description
         - walletAddress
         - value
-        - isReturned
 
     ChartDataResponse:
       type: object
@@ -327,9 +425,143 @@ components:
       required:
         - title
         - project
-        - img
         - policyId
         - nameHex
         - decimals
         - quantity
         - tradableCoins
+
+    LatestPriceRequest:
+      type: object
+      properties:
+        tokenA:
+          $ref: '#/components/schemas/Asset'
+        tokenB:
+          $ref: '#/components/schemas/Asset'
+        resetCache:
+          type: boolean
+          description: Whether to reset the cache for this request
+          default: false
+      required:
+        - tokenA
+        - tokenB
+
+    LatestPriceResponse:
+      type: object
+      properties:
+        price:
+          type: number
+          description: The latest price for the token pair
+      required:
+        - price
+
+    BatchLatestPriceRequest:
+      type: object
+      properties:
+        pairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/TokenPair'
+          maxItems: 50
+          description: Array of token pairs to get prices for
+      required:
+        - pairs
+
+    TokenPair:
+      type: object
+      properties:
+        tokenA:
+          $ref: '#/components/schemas/Asset'
+        tokenB:
+          $ref: '#/components/schemas/Asset'
+      required:
+        - tokenA
+        - tokenB
+
+    PriceResult:
+      type: object
+      properties:
+        tokenA:
+          $ref: '#/components/schemas/Asset'
+        tokenB:
+          $ref: '#/components/schemas/Asset'
+        price:
+          type: number
+          nullable: true
+          description: The price for this token pair
+        status:
+          type: string
+          enum: [success, error]
+          description: Status of the price fetch
+        error:
+          type: string
+          description: Error message if status is error
+      required:
+        - tokenA
+        - tokenB
+        - status
+
+    BatchLatestPriceResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceResult'
+      required:
+        - results
+
+    LatestPriceErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: number
+              description: Error code
+            message:
+              type: string
+              description: Error message
+            details:
+              type: string
+              description: Detailed error description
+          required:
+            - code
+            - message
+            - details
+      required:
+        - error
+
+    SwapResponse:
+      type: object
+      properties:
+        txHash:
+          type: string
+          description: Transaction hash of the swap
+        timestamp:
+          type: string
+          format: date-time
+          description: Time when the swap occurred
+        status:
+          type: string
+          enum: [pending, completed, failed]
+          description: Status of the swap
+        sellToken:
+          $ref: '#/components/schemas/Asset'
+        buyToken:
+          $ref: '#/components/schemas/Asset'
+        sellAmount:
+          type: string
+          description: Amount of tokens sold
+        buyAmount:
+          type: string
+          description: Amount of tokens bought
+      required:
+        - txHash
+        - timestamp
+        - status
+        - sellToken
+        - buyToken
+        - sellAmount
+        - buyAmount
